@@ -13,8 +13,9 @@ import playersData from '../assets/data.json';
 import {COLORS} from '../assets/colors';
 import {coin} from '../assets/images/index';
 
+const width = Dimensions.get('screen').width;
+
 const PlayerSelection = ({navigation}) => {
-  const width = Dimensions.get('screen').width;
   const [credits, setCredits] = useState(100);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [buttonDisabled, setButtonDisabled] = useState(true);
@@ -23,26 +24,33 @@ const PlayerSelection = ({navigation}) => {
   const [allRounderCount, setAllRounderCount] = useState(0);
   const [bowlerCount, setBowlerCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
-  const [errorMessage2, setErrorMessage2] = useState('');
-  const [teamCount1, setTeamCount1] = useState('');
-  const [teamCount2, setTeamCount2] = useState(false);
+  const [errorMessage2, setErrorMessage2] = useState(false);
+  const [teamCount1, setTeamCount1] = useState(0);
+  const [teamCount2, setTeamCount2] = useState(0);
 
   useEffect(() => {
-    console.log(teamCount1, teamCount2)
     if (selectedPlayers.length === 11) {
-      if (batsmanCount >= 3 && wicketKeeperCount >= 1 && bowlerCount >= 3) {
-        setButtonDisabled(false);
-      } else {
-        setButtonDisabled(false);
-        if (batsmanCount < 3) {
-          setErrorMessage(' Please Select Atleast 3 Batsman');
-        } else if (wicketKeeperCount < 1) {
-          setErrorMessage(' Please Select Atleast 1 Wicket Keeper');
-        } else if (bowlerCount < 3) {
-          setErrorMessage(' Please Select Atleast 3 Bowlers');
-        } else {
+      if (teamCount1 <= 7 && teamCount2 <= 7) {
+        if (batsmanCount >= 3 && wicketKeeperCount >= 1 && bowlerCount >= 3) {
+          setButtonDisabled(false);
           setErrorMessage('');
+          setErrorMessage2(false);
+        } else {
+          if (batsmanCount < 3) {
+            setButtonDisabled(true);
+            setErrorMessage(' Please Select Atleast 3 Batsman');
+          } else if (wicketKeeperCount < 1) {
+            setButtonDisabled(true);
+            setErrorMessage(' Please Select Atleast 1 Wicket Keeper');
+          } else if (bowlerCount < 3) {
+            setButtonDisabled(true);
+            setErrorMessage(' Please Select Atleast 3 Bowlers');
+          } else {
+            setErrorMessage('');
+          }
         }
+      } else {
+        setErrorMessage2(true);
       }
     } else {
       setButtonDisabled(true);
@@ -50,8 +58,9 @@ const PlayerSelection = ({navigation}) => {
     if (teamCount1 >= 7 || teamCount2 >= 7) {
       setErrorMessage2(true);
     } else {
-      setErrorMessage2(false);
+      setErrorMessage2('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPlayers]);
 
   const PlayerCard = ({data, disabled, onPress, count}) => {
@@ -82,40 +91,26 @@ const PlayerSelection = ({navigation}) => {
             setSelectedPlayers(players => [...players, data.player_id]);
           }
         }}
-        style={{
-          height: '100%',
-          width: 120,
-          borderColor: selectedPlayers.includes(data.player_id)
-            ? COLORS.green
-            : COLORS.grey,
-          borderWidth: 2,
-          borderRadius: 15,
-          paddingTop: 15,
-          marginRight: 16,
-          opacity: disabled ? 0.5 : 1,
-        }}>
+        style={[
+          styles.card,
+          disabled ? styles.opacity50p : styles.opacity100p,
+          selectedPlayers.includes(data.player_id)
+            ? styles.borderGreen
+            : styles.borderGrey,
+        ]}>
         <View style={styles.imageContainer}>
           <Image
             source={{uri: data.team_logo}}
-            style={{
-              height: 50,
-              width: 50,
-              borderRadius: 25,
-              borderWidth: 2,
-              borderColor: selectedPlayers.includes(data.player_id)
-                ? COLORS.green
-                : COLORS.grey,
-            }}
+            style={[
+              styles.cardLogo,
+              selectedPlayers.includes(data.player_id)
+                ? styles.borderGreen
+                : styles.borderGrey,
+            ]}
           />
-          <Text style={{color: '#354354', fontWeight: '600', fontSize: 12}}>
-            {data.name}
-          </Text>
-          <Text style={{color: '#354354', fontWeight: '600', fontSize: 12}}>
-            {data.role}
-          </Text>
-          <Text style={{color: '#354354', fontWeight: '600', fontSize: 12}}>
-            {data.event_player_credit}
-          </Text>
+          <Text style={styles.text}>{data.name}</Text>
+          <Text style={styles.text}>{data.role}</Text>
+          <Text style={styles.text}>{data.event_player_credit} credits</Text>
         </View>
       </TouchableOpacity>
     );
@@ -123,46 +118,25 @@ const PlayerSelection = ({navigation}) => {
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          width: width,
-          paddingHorizontal: 20,
-          alignItems: 'center',
-          paddingVertical: 8,
-          backgroundColor: COLORS.background,
-        }}>
+      <View style={styles.header}>
         <Image
           source={{
             uri: 'https://leaguex.com/_next/image?url=%2Fimg%2Flogos%2Flx_logo.png&w=3840&q=75',
           }}
           resizeMode={'contain'}
-          style={{height: '100%', width: '25%'}}
+          style={styles.image}
         />
-        <Text style={{color: '#FFFFFF', fontWeight: '700', fontSize: 18}}>
-          {selectedPlayers.length}/11
-        </Text>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Text style={{color: '#FFFFFF', fontWeight: '700', fontSize: 17}}>
-            {credits}
-          </Text>
-          <Image source={coin} style={{height: 30, width: 30}} />
+        <Text style={styles.headerText}>{selectedPlayers.length}/11</Text>
+        <View style={styles.creditsContainer}>
+          <Text style={styles.headerText}>{credits}</Text>
+          <Image source={coin} style={styles.size30} />
         </View>
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flex}>
-        <Text
-          style={{
-            alignSelf: 'center',
-            fontSize: 14,
-            color: COLORS.red,
-            paddingTop: 4,
-          }}>
-          {errorMessage}
-        </Text>
-        <Text style={[styles.roleHeading, {marginTop: 0}]}>
+        <Text style={styles.errorMessage}>{errorMessage}</Text>
+        <Text style={[styles.roleHeading, styles.margin0]}>
           Batsman{' '}
           <Text
             style={[
@@ -174,7 +148,7 @@ const PlayerSelection = ({navigation}) => {
         </Text>
         <ScrollView
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{height: 120, paddingLeft: 16}}
+          contentContainerStyle={styles.scrollView}
           horizontal>
           {playersData.map((item, index) => {
             if (item.role !== 'Batsman') {
@@ -205,7 +179,7 @@ const PlayerSelection = ({navigation}) => {
         </Text>
         <ScrollView
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{height: 120, paddingLeft: 16}}
+          contentContainerStyle={styles.scrollView}
           horizontal>
           {playersData.map((item, index) => {
             if (item.role !== 'Wicket-Keeper') {
@@ -229,7 +203,7 @@ const PlayerSelection = ({navigation}) => {
         </Text>
         <ScrollView
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{height: 120, paddingLeft: 16}}
+          contentContainerStyle={styles.scrollView}
           horizontal>
           {playersData.map((item, index) => {
             if (item.role !== 'All-Rounder') {
@@ -260,7 +234,7 @@ const PlayerSelection = ({navigation}) => {
         </Text>
         <ScrollView
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{height: 120, paddingLeft: 16}}
+          contentContainerStyle={styles.scrollView}
           horizontal>
           {playersData.map((item, index) => {
             if (item.role !== 'Bowler') {
@@ -281,13 +255,7 @@ const PlayerSelection = ({navigation}) => {
         </ScrollView>
       </ScrollView>
       {errorMessage2 === true && (
-        <Text
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            color: COLORS.red,
-            alignSelf: 'center',
-          }}>
+        <Text style={styles.errorMessage2}>
           Cannot Select more than 7 Players From a Team
         </Text>
       )}
@@ -299,27 +267,11 @@ const PlayerSelection = ({navigation}) => {
             selectedPlayers: selectedPlayers,
           });
         }}
-        style={{
-          width: width - 32,
-          position: 'absolute',
-          paddingVertical: 10,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: COLORS.background,
-          bottom: 20,
-          left: 16,
-          borderRadius: 12,
-          opacity: buttonDisabled ? 0.5 : 1,
-        }}>
-        <Text
-          style={{
-            color: COLORS.white,
-            fontSize: 20,
-            fontWeight: '700',
-            marginHorizontal: 16,
-          }}>
-          COMPLETE
-        </Text>
+        style={[
+          styles.button,
+          buttonDisabled ? styles.opacity50p : styles.opacity100p,
+        ]}>
+        <Text style={styles.buttonText}>COMPLETE</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -333,6 +285,37 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 80,
   },
+  scrollView: {height: 120, paddingLeft: 16},
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: width,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    paddingVertical: 8,
+    backgroundColor: COLORS.background,
+  },
+  size30: {height: 30, width: 30},
+  headerText: {color: '#FFFFFF', fontWeight: '700', fontSize: 17},
+  image: {
+    height: '100%',
+    width: '25%',
+  },
+  creditsContainer: {flexDirection: 'row', alignItems: 'center'},
+  card: {
+    height: '100%',
+    width: 120,
+    borderWidth: 2,
+    borderRadius: 15,
+    paddingTop: 15,
+    marginRight: 16,
+  },
+  cardLogo: {
+    height: 50,
+    width: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+  },
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -341,7 +324,7 @@ const styles = StyleSheet.create({
   roleHeading: {
     marginLeft: 16,
     marginTop: 20,
-    color: '#354354',
+    color: COLORS.text,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 10,
@@ -351,6 +334,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 10,
+  },
+  text: {
+    color: COLORS.text,
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  button: {
+    width: width - 32,
+    position: 'absolute',
+    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    bottom: 20,
+    left: 16,
+    borderRadius: 12,
+  },
+  errorMessage: {
+    alignSelf: 'center',
+    fontSize: 14,
+    color: COLORS.red,
+    paddingTop: 4,
+  },
+  errorMessage2: {
+    position: 'absolute',
+    bottom: 0,
+    color: COLORS.red,
+    alignSelf: 'center',
+    fontWeight: '500',
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontSize: 20,
+    fontWeight: '700',
+    marginHorizontal: 16,
+  },
+  opacity100p: {
+    opacity: 1,
+  },
+  opacity50p: {
+    opacity: 0.5,
+  },
+  margin0: {marginTop: 0},
+  borderGreen: {
+    borderColor: COLORS.green,
+  },
+  borderGrey: {
+    borderColor: COLORS.grey,
   },
 });
 

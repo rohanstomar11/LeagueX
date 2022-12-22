@@ -5,4 +5,5 @@ export const COLORS = {
   green: '#01CE24',
   grey: '#808080',
   red: '#FF0000',
+  text: '#354354',
 };
