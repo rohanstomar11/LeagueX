@@ -7,19 +7,25 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import playersData from '../assets/data.json';
 import {COLORS} from '../assets/colors';
+import {coin} from '../assets/images/index';
 
 const PlayerSelection = ({navigation}) => {
   const width = Dimensions.get('screen').width;
   const [credits, setCredits] = useState(100);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
-  // playersData.forEach(players => {
-  //   console.log(players.role);
-  // });
-  // console.log(selectedPlayers);
+  const [buttonDisabled, setButtonDisabled] = useState(true);
+
+  useEffect(() => {
+    if (selectedPlayers.length === 11) {
+      setButtonDisabled(false);
+    } else {
+      setButtonDisabled(true);
+    }
+  }, [selectedPlayers]);
 
   const PlayerCard = ({data}) => {
     return (
@@ -28,10 +34,12 @@ const PlayerSelection = ({navigation}) => {
         onPress={() => {
           if (selectedPlayers.includes(data.player_id)) {
             setSelectedPlayers(players => {
+              setCredits(credits + parseInt(data.event_player_credit, 10));
               return players.filter((value, i) => value !== data.player_id);
             });
           } else {
             setSelectedPlayers(players => [...players, data.player_id]);
+            setCredits(credits - parseInt(data.event_player_credit, 10));
           }
         }}
         style={{
@@ -74,10 +82,30 @@ const PlayerSelection = ({navigation}) => {
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          width: width - 40,
+          marginHorizontal: 20,
+          alignItems: 'center',
+          marginVertical: 8,
+        }}>
+        <Text
+          style={{color: COLORS.background, fontWeight: '700', fontSize: 24}}>
+          LeagueX
+        </Text>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Text style={{color: '#354354', fontWeight: '700', fontSize: 17}}>
+            {credits}
+          </Text>
+          <Image source={coin} style={{height: 30, width: 30}} />
+        </View>
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flex}>
-        <Text style={styles.roleHeading}>
+        <Text style={[styles.roleHeading, {marginTop: 0}]}>
           Batsman <Text style={styles.hint}>(Select 3-7 Batsman)</Text>
         </Text>
         <ScrollView
@@ -136,6 +164,7 @@ const PlayerSelection = ({navigation}) => {
         </ScrollView>
       </ScrollView>
       <TouchableOpacity
+        disabled={buttonDisabled}
         activeOpacity={0.9}
         onPress={() => {
           navigation.navigate('PlayerViewScreen', {
@@ -152,7 +181,7 @@ const PlayerSelection = ({navigation}) => {
           bottom: 20,
           left: 16,
           borderRadius: 12,
-          opacity: false ? 0.5 : 1,
+          opacity: buttonDisabled ? 0.5 : 1,
         }}>
         <Text
           style={{
