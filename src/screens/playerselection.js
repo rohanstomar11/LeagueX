@@ -22,12 +22,35 @@ const PlayerSelection = ({navigation}) => {
   const [wicketKeeperCount, setWicketKeeperCount] = useState(0);
   const [allRounderCount, setAllRounderCount] = useState(0);
   const [bowlerCount, setBowlerCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage2, setErrorMessage2] = useState('');
+  const [teamCount1, setTeamCount1] = useState('');
+  const [teamCount2, setTeamCount2] = useState(false);
 
   useEffect(() => {
+    console.log(teamCount1, teamCount2)
     if (selectedPlayers.length === 11) {
-      setButtonDisabled(false);
+      if (batsmanCount >= 3 && wicketKeeperCount >= 1 && bowlerCount >= 3) {
+        setButtonDisabled(false);
+      } else {
+        setButtonDisabled(false);
+        if (batsmanCount < 3) {
+          setErrorMessage(' Please Select Atleast 3 Batsman');
+        } else if (wicketKeeperCount < 1) {
+          setErrorMessage(' Please Select Atleast 1 Wicket Keeper');
+        } else if (bowlerCount < 3) {
+          setErrorMessage(' Please Select Atleast 3 Bowlers');
+        } else {
+          setErrorMessage('');
+        }
+      }
     } else {
       setButtonDisabled(true);
+    }
+    if (teamCount1 >= 7 || teamCount2 >= 7) {
+      setErrorMessage2(true);
+    } else {
+      setErrorMessage2(false);
     }
   }, [selectedPlayers]);
 
@@ -37,6 +60,11 @@ const PlayerSelection = ({navigation}) => {
         disabled={selectedPlayers.includes(data.player_id) ? false : disabled}
         activeOpacity={1}
         onPress={() => {
+          if (data.team_short_name === 'MS') {
+            setTeamCount1(teamCount1 - 1);
+          } else {
+            setTeamCount2(teamCount2 - 1);
+          }
           if (selectedPlayers.includes(data.player_id)) {
             setSelectedPlayers(players => {
               setCredits(credits + parseInt(data.event_player_credit, 10));
@@ -44,6 +72,11 @@ const PlayerSelection = ({navigation}) => {
               return players.filter((value, i) => value !== data.player_id);
             });
           } else {
+            if (data.team_short_name === 'MS') {
+              setTeamCount1(teamCount1 + 1);
+            } else {
+              setTeamCount2(teamCount2 + 1);
+            }
             setCredits(credits - parseInt(data.event_player_credit, 10));
             onPress(count + 1);
             setSelectedPlayers(players => [...players, data.player_id]);
@@ -100,10 +133,6 @@ const PlayerSelection = ({navigation}) => {
           paddingVertical: 8,
           backgroundColor: COLORS.background,
         }}>
-        {/* <Text
-          style={{color: COLORS.background, fontWeight: '700', fontSize: 24}}>
-          LeagueX
-        </Text> */}
         <Image
           source={{
             uri: 'https://leaguex.com/_next/image?url=%2Fimg%2Flogos%2Flx_logo.png&w=3840&q=75',
@@ -111,6 +140,9 @@ const PlayerSelection = ({navigation}) => {
           resizeMode={'contain'}
           style={{height: '100%', width: '25%'}}
         />
+        <Text style={{color: '#FFFFFF', fontWeight: '700', fontSize: 18}}>
+          {selectedPlayers.length}/11
+        </Text>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Text style={{color: '#FFFFFF', fontWeight: '700', fontSize: 17}}>
             {credits}
@@ -121,8 +153,24 @@ const PlayerSelection = ({navigation}) => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flex}>
-        <Text style={styles.roleHeading}>
-          Batsman <Text style={styles.hint}>(Select 3-7 Batsman)</Text>
+        <Text
+          style={{
+            alignSelf: 'center',
+            fontSize: 14,
+            color: COLORS.red,
+            paddingTop: 4,
+          }}>
+          {errorMessage}
+        </Text>
+        <Text style={[styles.roleHeading, {marginTop: 0}]}>
+          Batsman{' '}
+          <Text
+            style={[
+              styles.hint,
+              {color: batsmanCount < 3 ? COLORS.red : COLORS.grey},
+            ]}>
+            {batsmanCount < 3 ? '(Select Atleast 3)' : 'Max Limit: 7'}
+          </Text>
         </Text>
         <ScrollView
           showsHorizontalScrollIndicator={false}
@@ -136,7 +184,9 @@ const PlayerSelection = ({navigation}) => {
               <PlayerCard
                 data={item}
                 key={index}
-                disabled={batsmanCount >= 7}
+                disabled={
+                  batsmanCount >= 7 || credits < item.event_player_credit
+                }
                 onPress={setBatsmanCount}
                 count={batsmanCount}
               />
@@ -145,7 +195,13 @@ const PlayerSelection = ({navigation}) => {
         </ScrollView>
         <Text style={styles.roleHeading}>
           Wicket-Keeper{' '}
-          <Text style={styles.hint}>(Select 1-5 Wicket-Keeper)</Text>
+          <Text
+            style={[
+              styles.hint,
+              {color: wicketKeeperCount < 1 ? COLORS.red : COLORS.grey},
+            ]}>
+            {wicketKeeperCount < 1 ? '(Select Atleast 1)' : 'Max Limit: 5'}
+          </Text>
         </Text>
         <ScrollView
           showsHorizontalScrollIndicator={false}
@@ -159,7 +215,9 @@ const PlayerSelection = ({navigation}) => {
               <PlayerCard
                 data={item}
                 key={index}
-                disabled={wicketKeeperCount >= 5}
+                disabled={
+                  wicketKeeperCount >= 5 || credits < item.event_player_credit
+                }
                 onPress={setWicketKeeperCount}
                 count={wicketKeeperCount}
               />
@@ -167,7 +225,7 @@ const PlayerSelection = ({navigation}) => {
           })}
         </ScrollView>
         <Text style={styles.roleHeading}>
-          All-Rounder <Text style={styles.hint}>(Select 0-4 All-Rounder)</Text>
+          All-Rounder <Text style={styles.hint}>Max Limit: 4</Text>
         </Text>
         <ScrollView
           showsHorizontalScrollIndicator={false}
@@ -181,7 +239,9 @@ const PlayerSelection = ({navigation}) => {
               <PlayerCard
                 data={item}
                 key={index}
-                disabled={allRounderCount >= 4}
+                disabled={
+                  allRounderCount >= 4 || credits < item.event_player_credit
+                }
                 onPress={setAllRounderCount}
                 count={allRounderCount}
               />
@@ -189,7 +249,14 @@ const PlayerSelection = ({navigation}) => {
           })}
         </ScrollView>
         <Text style={styles.roleHeading}>
-          Bowler <Text style={styles.hint}>(Select 3-7 Bowler)</Text>
+          Bowler{' '}
+          <Text
+            style={[
+              styles.hint,
+              {color: bowlerCount < 3 ? COLORS.red : COLORS.grey},
+            ]}>
+            {bowlerCount < 3 ? '(Select Atleast 3)' : 'Max Limit: 7'}
+          </Text>
         </Text>
         <ScrollView
           showsHorizontalScrollIndicator={false}
@@ -203,7 +270,9 @@ const PlayerSelection = ({navigation}) => {
               <PlayerCard
                 data={item}
                 key={index}
-                disabled={bowlerCount >= 7}
+                disabled={
+                  bowlerCount >= 7 || credits < item.event_player_credit
+                }
                 onPress={setBowlerCount}
                 count={bowlerCount}
               />
@@ -211,6 +280,17 @@ const PlayerSelection = ({navigation}) => {
           })}
         </ScrollView>
       </ScrollView>
+      {errorMessage2 === true && (
+        <Text
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            color: COLORS.red,
+            alignSelf: 'center',
+          }}>
+          Cannot Select more than 7 Players From a Team
+        </Text>
+      )}
       <TouchableOpacity
         disabled={buttonDisabled}
         activeOpacity={0.9}
@@ -269,7 +349,6 @@ const styles = StyleSheet.create({
   },
   hint: {
     marginTop: 20,
-    color: COLORS.grey,
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 10,
