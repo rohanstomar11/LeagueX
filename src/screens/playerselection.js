@@ -18,6 +18,10 @@ const PlayerSelection = ({navigation}) => {
   const [credits, setCredits] = useState(100);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [buttonDisabled, setButtonDisabled] = useState(true);
+  const [batsmanCount, setBatsmanCount] = useState(0);
+  const [wicketKeeperCount, setWicketKeeperCount] = useState(0);
+  const [allRounderCount, setAllRounderCount] = useState(0);
+  const [bowlerCount, setBowlerCount] = useState(0);
 
   useEffect(() => {
     if (selectedPlayers.length === 11) {
@@ -27,19 +31,22 @@ const PlayerSelection = ({navigation}) => {
     }
   }, [selectedPlayers]);
 
-  const PlayerCard = ({data}) => {
+  const PlayerCard = ({data, disabled, onPress, count}) => {
     return (
       <TouchableOpacity
+        disabled={selectedPlayers.includes(data.player_id) ? false : disabled}
         activeOpacity={1}
         onPress={() => {
           if (selectedPlayers.includes(data.player_id)) {
             setSelectedPlayers(players => {
               setCredits(credits + parseInt(data.event_player_credit, 10));
+              onPress(count - 1);
               return players.filter((value, i) => value !== data.player_id);
             });
           } else {
-            setSelectedPlayers(players => [...players, data.player_id]);
             setCredits(credits - parseInt(data.event_player_credit, 10));
+            onPress(count + 1);
+            setSelectedPlayers(players => [...players, data.player_id]);
           }
         }}
         style={{
@@ -52,6 +59,7 @@ const PlayerSelection = ({navigation}) => {
           borderRadius: 15,
           paddingTop: 15,
           marginRight: 16,
+          opacity: disabled ? 0.5 : 1,
         }}>
         <View style={styles.imageContainer}>
           <Image
@@ -86,17 +94,25 @@ const PlayerSelection = ({navigation}) => {
         style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
-          width: width - 40,
-          marginHorizontal: 20,
+          width: width,
+          paddingHorizontal: 20,
           alignItems: 'center',
-          marginVertical: 8,
+          paddingVertical: 8,
+          backgroundColor: COLORS.background,
         }}>
-        <Text
+        {/* <Text
           style={{color: COLORS.background, fontWeight: '700', fontSize: 24}}>
           LeagueX
-        </Text>
+        </Text> */}
+        <Image
+          source={{
+            uri: 'https://leaguex.com/_next/image?url=%2Fimg%2Flogos%2Flx_logo.png&w=3840&q=75',
+          }}
+          resizeMode={'contain'}
+          style={{height: '100%', width: '25%'}}
+        />
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Text style={{color: '#354354', fontWeight: '700', fontSize: 17}}>
+          <Text style={{color: '#FFFFFF', fontWeight: '700', fontSize: 17}}>
             {credits}
           </Text>
           <Image source={coin} style={{height: 30, width: 30}} />
@@ -105,7 +121,7 @@ const PlayerSelection = ({navigation}) => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flex}>
-        <Text style={[styles.roleHeading, {marginTop: 0}]}>
+        <Text style={styles.roleHeading}>
           Batsman <Text style={styles.hint}>(Select 3-7 Batsman)</Text>
         </Text>
         <ScrollView
@@ -116,7 +132,15 @@ const PlayerSelection = ({navigation}) => {
             if (item.role !== 'Batsman') {
               return null;
             }
-            return <PlayerCard data={item} key={index} />;
+            return (
+              <PlayerCard
+                data={item}
+                key={index}
+                disabled={batsmanCount >= 7}
+                onPress={setBatsmanCount}
+                count={batsmanCount}
+              />
+            );
           })}
         </ScrollView>
         <Text style={styles.roleHeading}>
@@ -131,7 +155,15 @@ const PlayerSelection = ({navigation}) => {
             if (item.role !== 'Wicket-Keeper') {
               return null;
             }
-            return <PlayerCard data={item} key={index} />;
+            return (
+              <PlayerCard
+                data={item}
+                key={index}
+                disabled={wicketKeeperCount >= 5}
+                onPress={setWicketKeeperCount}
+                count={wicketKeeperCount}
+              />
+            );
           })}
         </ScrollView>
         <Text style={styles.roleHeading}>
@@ -145,7 +177,15 @@ const PlayerSelection = ({navigation}) => {
             if (item.role !== 'All-Rounder') {
               return null;
             }
-            return <PlayerCard data={item} key={index} />;
+            return (
+              <PlayerCard
+                data={item}
+                key={index}
+                disabled={allRounderCount >= 4}
+                onPress={setAllRounderCount}
+                count={allRounderCount}
+              />
+            );
           })}
         </ScrollView>
         <Text style={styles.roleHeading}>
@@ -159,7 +199,15 @@ const PlayerSelection = ({navigation}) => {
             if (item.role !== 'Bowler') {
               return null;
             }
-            return <PlayerCard data={item} key={index} />;
+            return (
+              <PlayerCard
+                data={item}
+                key={index}
+                disabled={bowlerCount >= 7}
+                onPress={setBowlerCount}
+                count={bowlerCount}
+              />
+            );
           })}
         </ScrollView>
       </ScrollView>
