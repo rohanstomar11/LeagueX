@@ -328,7 +328,6 @@ const PlayerSelection = ({navigation}) => {
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
-    backgroundColor: COLORS.bac,
   },
   flex: {
     flexGrow: 1,
